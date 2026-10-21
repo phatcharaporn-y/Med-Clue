@@ -1,4 +1,4 @@
-import "./globals.css";
+import "./site.css";
 import type { ReactNode } from "react";
 import { Prompt } from "next/font/google";
 
