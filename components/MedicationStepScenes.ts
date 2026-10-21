@@ -81,6 +81,10 @@ abstract class MedicationStepScene extends Phaser.Scene {
   protected backToTray() {
     this.scene.stop();
     this.scene.resume("MedicationTray");
+    const tray = this.scene.get("MedicationTray") as Phaser.Scene & {
+      setChildSceneOpen?: (open: boolean) => void;
+    };
+    tray.setChildSceneOpen?.(false);
   }
 
   protected save(update: Partial<Preparation>) {
@@ -168,13 +172,23 @@ abstract class MedicationStepScene extends Phaser.Scene {
 export class MedicationCabinetScene extends MedicationStepScene {
   private enlargedBottleOpen = false;
   private enlargedBottleIndex = 0;
+  private readonly bottleTextures = [
+    "regularInsulinVial",
+    "glargineInsulinVial",
+    "nphInsulinVial",
+  ];
 
   constructor() {
     super("MedicationCabinet");
   }
   preload() {
     this.load.image("medicineFridge", "/images/game/refige.png");
-    this.load.image("regularInsulinVial", "/images/game/Regular_Insulin.png");
+    this.load.image("regularInsulinVial", "/images/med/Regular_Insulin.png");
+    this.load.image(
+      "glargineInsulinVial",
+      "/images/med/Insulin glargine U-100.png",
+    );
+    this.load.image("nphInsulinVial", "/images/med/NPH insulin U-100.png");
     this.load.audio("medStepClick", "/sounds/interface-click.wav");
     this.load.audio("medStepGlass", "/sounds/glass-hitting.wav");
   }
@@ -197,18 +211,26 @@ export class MedicationCabinetScene extends MedicationStepScene {
       .image(fridgeX, fridgeY, "medicineFridge")
       .setScale(scale)
       .setDepth(2);
-    const vialTexture = this.textures
+    const regularTexture = this.textures
       .get("regularInsulinVial")
       .getSourceImage() as HTMLImageElement;
-    const vialScale = Math.min(
-      (image.displayHeight * 0.19) / vialTexture.height,
-      (image.displayWidth * 0.12) / vialTexture.width,
+    const regularScale = Math.min(
+      (image.displayHeight * 0.19) / regularTexture.height,
+      (image.displayWidth * 0.12) / regularTexture.width,
     );
+    const bottleDisplayHeight = regularTexture.height * regularScale;
     const rowY = image.y - image.displayHeight * 0.075;
     [-0.2, 0, 0.2].forEach((offset, index) => {
       const x = image.x + image.displayWidth * offset;
+      const textureKey = this.bottleTextures[index];
+      const vialTexture = this.textures
+        .get(textureKey)
+        .getSourceImage() as HTMLImageElement;
+      // Give each source image the same rendered height as Regular insulin,
+      // whose square canvas would otherwise make the portrait vials look larger.
+      const vialScale = bottleDisplayHeight / vialTexture.height;
       const vial = this.add
-        .image(x, rowY, "regularInsulinVial")
+        .image(x, rowY, textureKey)
         .setScale(vialScale)
         .setDepth(4)
         .setInteractive({ useHandCursor: true });
@@ -339,10 +361,14 @@ export class MedicationCabinetScene extends MedicationStepScene {
       .setDepth(30)
       .setInteractive();
     const source = this.textures
-      .get("regularInsulinVial")
+      .get(this.bottleTextures[this.enlargedBottleIndex])
       .getSourceImage() as HTMLImageElement;
     const bottle = this.add
-      .image(width / 2, height / 2, "regularInsulinVial")
+      .image(
+        width / 2,
+        height / 2,
+        this.bottleTextures[this.enlargedBottleIndex],
+      )
       .setScale(
         Math.min(
           (width * 0.62) / source.width,
@@ -351,21 +377,26 @@ export class MedicationCabinetScene extends MedicationStepScene {
       )
       .setDepth(31);
     this.add
-      .text(Math.max(24, width * 0.025), Math.max(30, height * 0.045), "< กลับ", {
-        fontFamily: "Arial, sans-serif",
-        fontSize: `${Math.max(18, Math.min(26, height * 0.026))}px`,
-        fontStyle: "bold",
-        color: "#ffffff",
-        stroke: "#111111",
-        strokeThickness: 4,
-      })
+      .text(
+        Math.max(24, width * 0.025),
+        Math.max(30, height * 0.045),
+        "< กลับ",
+        {
+          fontFamily: this.font,
+          fontSize: `${Math.max(18, Math.min(26, height * 0.026))}px`,
+          fontStyle: "bold",
+          color: "#ffffff",
+          stroke: "#111111",
+          strokeThickness: 4,
+        },
+      )
       .setOrigin(0, 0.5)
       .setDepth(32)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
-      this.enlargedBottleOpen = false;
-      this.draw();
-    });
+        this.enlargedBottleOpen = false;
+        this.draw();
+      });
     // Keep the selected bottle context available while the enlarged view is open.
     void bottle;
     void this.enlargedBottleIndex;
@@ -384,12 +415,10 @@ export class MedicationSyringesScene extends MedicationStepScene {
   create() {
     this.begin("เลือกไซริง / เข็ม", this.draw);
     this.draw();
-    
   }
   private draw = () => {
-    
     this.drawShell("เลือกไซริง / เข็ม");
-    
+
     const { width, height } = this.scale;
     const image = this.textures
       .get("cabinetSyringe")
@@ -743,12 +772,17 @@ export class MedicationDoseScene extends MedicationStepScene {
       .setOrigin(0.5)
       .setDepth(11);
     const label = this.add
-      .text(x + buttonW * 0.07, y, this.state.doseCalculated ? "ยืนยัน" : "คำนวณ", {
-        fontFamily: this.font,
-        fontSize: `${Math.max(17, buttonH * 0.32)}px`,
-        fontStyle: "bold",
-        color: disabled ? "#bcb5b5" : "#ffffff",
-      })
+      .text(
+        x + buttonW * 0.07,
+        y,
+        this.state.doseCalculated ? "ยืนยัน" : "คำนวณ",
+        {
+          fontFamily: this.font,
+          fontSize: `${Math.max(17, buttonH * 0.32)}px`,
+          fontStyle: "bold",
+          color: disabled ? "#bcb5b5" : "#ffffff",
+        },
+      )
       .setOrigin(0.5)
       .setDepth(11);
     if (disabled) return;
@@ -784,7 +818,7 @@ export class MedicationDoseScene extends MedicationStepScene {
     const radius = Math.max(25, Math.min(36, height * 0.034));
     const circle = this.add
       .circle(x, y, radius, 0x754444, 0.98)
-      .setStrokeStyle(2.5, 0x1E1E1E)
+      .setStrokeStyle(2.5, 0x1e1e1e)
       .setDepth(7)
       .setInteractive({ useHandCursor: true });
     const arrow = this.add
@@ -883,7 +917,12 @@ export class MedicationAspirationScene extends MedicationStepScene {
     const key = `aspiration${frame + 1}`;
     const source = this.textures.get(key).getSourceImage() as HTMLImageElement;
     if (this.isAspirating && this.remainingSeconds === 1) {
-      this.text(width * 0.4, height * 0.52, "ตรวจสอบขั้นตอนสุดท้าย...", Math.max(20, height * 0.026));
+      this.text(
+        width * 0.4,
+        height * 0.52,
+        "ตรวจสอบขั้นตอนสุดท้าย...",
+        Math.max(20, height * 0.026),
+      );
     } else {
       this.add
         .image(width * 0.4, height * 0.52, key)
@@ -908,10 +947,10 @@ export class MedicationAspirationScene extends MedicationStepScene {
         ? this.state.aspirated
           ? "ดูดยาเสร็จแล้ว ✓"
           : this.isAspirating
-          ? this.remainingSeconds > 1
-            ? `เหลืออีก ${this.remainingSeconds} วินาที`
-            : "เหลืออีก 1 วินาที • ตรวจสอบขั้นตอน"
-          : "ใช้เวลาประมาณ 5 วินาที"
+            ? this.remainingSeconds > 1
+              ? `เหลืออีก ${this.remainingSeconds} วินาที`
+              : "เหลืออีก 1 วินาที • ตรวจสอบขั้นตอน"
+            : "ใช้เวลาประมาณ 5 วินาที"
         : this.blockMessage(),
       Math.max(14, height * 0.017),
       "#f4d7a2",
@@ -920,62 +959,110 @@ export class MedicationAspirationScene extends MedicationStepScene {
     const progressY = height * 0.56;
     const progressWidth = Math.min(260, width * 0.19);
     const progressHeight = Math.max(10, height * 0.014);
-    this.add.rectangle(progressX, progressY, progressWidth, progressHeight, 0x354047, 1)
-      .setStrokeStyle(1, 0xd7c9aa).setDepth(5);
-    if (this.isAspirating || this.state.aspirated) {
-      const progress = this.state.aspirated ? 1 : (5 - this.remainingSeconds) / 5;
-      this.add.rectangle(
-        progressX - progressWidth * (1 - progress) / 2,
+    this.add
+      .rectangle(
+        progressX,
         progressY,
-        Math.max(1, progressWidth * progress),
-        progressHeight - 3,
-        0xfdbd48,
+        progressWidth,
+        progressHeight,
+        0x354047,
         1,
-      ).setDepth(6);
+      )
+      .setStrokeStyle(1, 0xd7c9aa)
+      .setDepth(5);
+    if (this.isAspirating || this.state.aspirated) {
+      const progress = this.state.aspirated
+        ? 1
+        : (5 - this.remainingSeconds) / 5;
+      this.add
+        .rectangle(
+          progressX - (progressWidth * (1 - progress)) / 2,
+          progressY,
+          Math.max(1, progressWidth * progress),
+          progressHeight - 3,
+          0xfdbd48,
+          1,
+        )
+        .setDepth(6);
     }
-    this.drawAspirationButton(
-      progressX,
-      height * 0.67,
-      progressWidth,
-      allowed,
-    );
+    this.drawAspirationButton(progressX, height * 0.67, progressWidth, allowed);
   };
 
-  private drawAspirationButton(x: number, y: number, width: number, allowed: boolean) {
+  private drawAspirationButton(
+    x: number,
+    y: number,
+    width: number,
+    allowed: boolean,
+  ) {
     const height = Math.max(54, Math.min(72, this.scale.height * 0.068));
     const disabled = !allowed || this.isAspirating;
     const completed = this.state.aspirated;
     const fill = disabled ? 0x514344 : 0x754444;
     this.add.rectangle(x, y + 4, width, height, 0x111820, 0.8).setDepth(7);
-    const face = this.add.rectangle(x, y, width, height, fill, 1)
+    const face = this.add
+      .rectangle(x, y, width, height, fill, 1)
       .setStrokeStyle(2, disabled ? 0x78817f : 0x3f2523)
       .setDepth(8)
       .setInteractive({ useHandCursor: !disabled });
-    const icon = this.add.text(x - width * 0.3, y,
-      completed ? "✓" : this.isAspirating ? "●" : "▶", {
-      fontFamily: "Arial, sans-serif",
-      fontSize: `${Math.max(18, height * 0.32)}px`,
-      fontStyle: "bold",
-      color: disabled ? "#bcb5b5" : "#ffffff",
-    }).setOrigin(0.5).setDepth(9);
-    const label = this.add.text(x + width * 0.06, y,
-      completed ? "ยืนยัน" : this.isAspirating ? "กำลังดูดยา..." : "เริ่มดูดยา", {
-        fontFamily: this.font,
-        fontSize: `${Math.max(16, height * 0.28)}px`,
-        fontStyle: "bold",
-        color: disabled ? "#bcb5b5" : "#ffffff",
-      }).setOrigin(0.5).setDepth(9);
+    const icon = this.add
+      .text(
+        x - width * 0.3,
+        y,
+        completed ? "✓" : this.isAspirating ? "●" : "▶",
+        {
+          fontFamily: "Arial, sans-serif",
+          fontSize: `${Math.max(18, height * 0.32)}px`,
+          fontStyle: "bold",
+          color: disabled ? "#bcb5b5" : "#ffffff",
+        },
+      )
+      .setOrigin(0.5)
+      .setDepth(9);
+    const label = this.add
+      .text(
+        x + width * 0.06,
+        y,
+        completed
+          ? "ยืนยัน"
+          : this.isAspirating
+            ? "กำลังดูดยา..."
+            : "เริ่มดูดยา",
+        {
+          fontFamily: this.font,
+          fontSize: `${Math.max(16, height * 0.28)}px`,
+          fontStyle: "bold",
+          color: disabled ? "#bcb5b5" : "#ffffff",
+        },
+      )
+      .setOrigin(0.5)
+      .setDepth(9);
     if (this.isAspirating) {
-      this.tweens.add({ targets: icon, alpha: 0.35, yoyo: true, repeat: -1, duration: 380 });
+      this.tweens.add({
+        targets: icon,
+        alpha: 0.35,
+        yoyo: true,
+        repeat: -1,
+        duration: 380,
+      });
     }
     if (disabled) return;
     face.on("pointerover", () => {
       face.setFillStyle(0x875252, 1);
-      this.tweens.add({ targets: [face, icon, label], y: y - 2, duration: 130, ease: "Sine.Out" });
+      this.tweens.add({
+        targets: [face, icon, label],
+        y: y - 2,
+        duration: 130,
+        ease: "Sine.Out",
+      });
     });
     face.on("pointerout", () => {
       face.setFillStyle(0x754444, 1);
-      this.tweens.add({ targets: [face, icon, label], y, duration: 130, ease: "Sine.Out" });
+      this.tweens.add({
+        targets: [face, icon, label],
+        y,
+        duration: 130,
+        ease: "Sine.Out",
+      });
     });
     const confirmOrStart = () => {
       if (this.state.aspirated) {
@@ -986,8 +1073,12 @@ export class MedicationAspirationScene extends MedicationStepScene {
       }
     };
     face.on("pointerdown", confirmOrStart);
-    icon.setInteractive({ useHandCursor: !disabled }).on("pointerdown", confirmOrStart);
-    label.setInteractive({ useHandCursor: !disabled }).on("pointerdown", confirmOrStart);
+    icon
+      .setInteractive({ useHandCursor: !disabled })
+      .on("pointerdown", confirmOrStart);
+    label
+      .setInteractive({ useHandCursor: !disabled })
+      .on("pointerdown", confirmOrStart);
   }
 
   private startAspiration() {

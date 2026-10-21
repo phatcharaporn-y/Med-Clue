@@ -246,8 +246,18 @@ export class MedicationPatientFlowScene extends Phaser.Scene {
     textSize: (size: number) => string,
   ) {
     const cx = width / 2;
-    const titleStyle = { fontFamily: this.uiFont, fontSize: textSize(25), fontStyle: "bold", color: "#ffffff", stroke: "#171411", strokeThickness: 5 };
-    this.add.text(cx, height * 0.105, "สนทนาก่อนฉีดยา", titleStyle).setOrigin(0.5).setDepth(6);
+    const titleStyle = {
+      fontFamily: this.uiFont,
+      fontSize: textSize(25),
+      fontStyle: "bold",
+      color: "#ffffff",
+      stroke: "#171411",
+      strokeThickness: 5,
+    };
+    this.add
+      .text(cx, height * 0.105, "สนทนาก่อนฉีดยา", titleStyle)
+      .setOrigin(0.5)
+      .setDepth(6);
     const topic = preInjectionTopics[this.topicIndex];
     const nurseBubbleY = height * 0.35;
     const patientBubbleY = height * 0.51;
@@ -256,61 +266,188 @@ export class MedicationPatientFlowScene extends Phaser.Scene {
     const bubbleW = Math.min(width * 0.39, 560);
     const nurseBubbleH = Math.min(height * 0.17, 150);
     const patientBubbleH = Math.min(height * 0.12, 112);
-    this.drawSpeakerTag(nurseBubbleX, nurseBubbleY - nurseBubbleH * 0.5 - 20 * scale, "พยาบาลแจ้ง", 0x743d31, textSize(14));
-    this.drawSpeakerTag(patientBubbleX, patientBubbleY - patientBubbleH * 0.5 - 20 * scale, "ผู้ป่วยตอบ", 0x285a7a, textSize(14));
-    this.drawSpeechBubble(nurseBubbleX, nurseBubbleY, bubbleW, nurseBubbleH, 0xffe9c9, 0x743d31, false);
-    this.add.text(nurseBubbleX, nurseBubbleY, topic.label, {
-      fontFamily: this.uiFont, fontSize: textSize(17), color: "#29251f", align: "center", wordWrap: { width: bubbleW - 42 },
-    }).setOrigin(0.5).setDepth(9);
+    this.drawSpeakerTag(
+      nurseBubbleX,
+      nurseBubbleY - nurseBubbleH * 0.5 - 20 * scale,
+      "พยาบาลแจ้ง",
+      0x743d31,
+      textSize(14),
+    );
+    this.drawSpeakerTag(
+      patientBubbleX,
+      patientBubbleY - patientBubbleH * 0.5 - 20 * scale,
+      "ผู้ป่วยตอบ",
+      0x285a7a,
+      textSize(14),
+    );
+    this.drawSpeechBubble(
+      nurseBubbleX,
+      nurseBubbleY,
+      bubbleW,
+      nurseBubbleH,
+      0xffe9c9,
+      0x743d31,
+      false,
+    );
+    this.add
+      .text(nurseBubbleX, nurseBubbleY, topic.label, {
+        fontFamily: this.uiFont,
+        fontSize: textSize(17),
+        color: "#29251f",
+        align: "center",
+        wordWrap: { width: bubbleW - 42 },
+      })
+      .setOrigin(0.5)
+      .setDepth(9);
     const hasShared = this.selectedTopics.has(topic.id);
-    this.drawSpeechBubble(patientBubbleX, patientBubbleY, bubbleW, patientBubbleH, 0xdcecf8, 0x285a7a, true);
-    this.add.text(patientBubbleX, patientBubbleY, hasShared ? "ครับ รับทราบครับ" : "ครับ ผมกำลังฟังอยู่ครับ", {
-      fontFamily: this.uiFont, fontSize: textSize(16), color: "#29251f", align: "center", wordWrap: { width: bubbleW - 42 },
-    }).setOrigin(0.5).setDepth(9);
+    this.drawSpeechBubble(
+      patientBubbleX,
+      patientBubbleY,
+      bubbleW,
+      patientBubbleH,
+      0xdcecf8,
+      0x285a7a,
+      true,
+    );
+    this.add
+      .text(
+        patientBubbleX,
+        patientBubbleY,
+        hasShared ? "ครับ รับทราบครับ" : "ครับ ผมกำลังฟังอยู่ครับ",
+        {
+          fontFamily: this.uiFont,
+          fontSize: textSize(16),
+          color: "#29251f",
+          align: "center",
+          wordWrap: { width: bubbleW - 42 },
+        },
+      )
+      .setOrigin(0.5)
+      .setDepth(9);
     const progressY = height * 0.655;
     const progressW = Math.min(width * 0.28, 360);
-    this.add.rectangle(cx, progressY, progressW, 7 * scale, 0xffffff, 0.38).setDepth(5);
-    this.add.rectangle(cx - progressW * (1 - (this.topicIndex + 1) / preInjectionTopics.length) / 2, progressY, progressW * (this.topicIndex + 1) / preInjectionTopics.length, 7 * scale, 0xf0c65b).setDepth(6);
-    this.add.text(cx, progressY - 16 * scale, `หัวข้อ ${this.topicIndex + 1} / ${preInjectionTopics.length}`, { fontFamily: this.uiFont, fontSize: textSize(13), color: "#ffffff", stroke: "#171411", strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(7);
+    this.add
+      .rectangle(cx, progressY, progressW, 7 * scale, 0xffffff, 0.38)
+      .setDepth(5);
+    this.add
+      .rectangle(
+        cx -
+          (progressW *
+            (1 - (this.topicIndex + 1) / preInjectionTopics.length)) /
+            2,
+        progressY,
+        (progressW * (this.topicIndex + 1)) / preInjectionTopics.length,
+        7 * scale,
+        0xf0c65b,
+      )
+      .setDepth(6);
+    this.add
+      .text(
+        cx,
+        progressY - 16 * scale,
+        `หัวข้อ ${this.topicIndex + 1} / ${preInjectionTopics.length}`,
+        {
+          fontFamily: this.uiFont,
+          fontSize: textSize(13),
+          color: "#ffffff",
+          stroke: "#171411",
+          strokeThickness: 3,
+        },
+      )
+      .setOrigin(0.5, 1)
+      .setDepth(7);
     const optionY = height * 0.75;
     const optionW = Math.min(width * 0.3, 380);
     const optionH = Math.min(48 * scale, height * 0.066);
-    this.drawTopicChoice(width * 0.4, optionY, optionW, optionH, "แจ้งข้อมูลนี้", hasShared, 0x338a58, textSize(16), () => {
-      this.selectedTopics.add(topic.id);
-      this.decidedTopics.add(topic.id);
-      this.feedback = `แจ้งผู้ป่วยแล้ว: ${topic.label}`;
-      this.draw();
-    });
+    this.drawTopicChoice(
+      width * 0.4,
+      optionY,
+      optionW,
+      optionH,
+      "แจ้งข้อมูลนี้",
+      hasShared,
+      0x338a58,
+      textSize(16),
+      () => {
+        this.selectedTopics.add(topic.id);
+        this.decidedTopics.add(topic.id);
+        this.feedback = `แจ้งผู้ป่วยแล้ว: ${topic.label}`;
+        this.draw();
+      },
+    );
     const wasSkipped = this.decidedTopics.has(topic.id) && !hasShared;
-    this.drawTopicChoice(width * 0.6, optionY, optionW, optionH, "ข้ามหัวข้อนี้", wasSkipped, 0xc18139, textSize(16), () => {
-      this.selectedTopics.delete(topic.id);
-      this.decidedTopics.add(topic.id);
-      this.feedback = "ข้ามหัวข้อนี้แล้ว";
-      this.draw();
-    });
+    this.drawTopicChoice(
+      width * 0.6,
+      optionY,
+      optionW,
+      optionH,
+      "ข้ามหัวข้อนี้",
+      wasSkipped,
+      0xc18139,
+      textSize(16),
+      () => {
+        this.selectedTopics.delete(topic.id);
+        this.decidedTopics.add(topic.id);
+        this.feedback = "ข้ามหัวข้อนี้แล้ว";
+        this.draw();
+      },
+    );
     const choiceStatus = this.feedback.startsWith("กรุณาแจ้ง")
       ? this.feedback
       : !this.decidedTopics.has(topic.id)
         ? "เลือกว่าจะ ‘แจ้งข้อมูลนี้’ หรือ ‘ข้ามหัวข้อนี้’"
-        : hasShared ? "เลือกแล้ว: แจ้งข้อมูลนี้" : "เลือกแล้ว: ข้ามหัวข้อนี้";
-    this.add.text(cx, height * 0.84, choiceStatus, {
-      fontFamily: this.uiFont, fontSize: textSize(14), fontStyle: "bold",
-      color: this.feedback.startsWith("กรุณาแจ้ง") ? "#ffd0bd" : this.decidedTopics.has(topic.id) ? "#fff2cf" : "#ffffff",
-      stroke: "#171411", strokeThickness: 3, align: "center",
-    }).setOrigin(0.5).setDepth(8);
-    if (this.topicIndex > 0) this.button(width * 0.39, height * 0.94, width * 0.18, height * 0.065, "‹ ก่อนหน้า", () => {
-      this.topicIndex -= 1;
-      this.draw();
-    }, textSize(15), false);
-    if (this.topicIndex < preInjectionTopics.length - 1) this.button(width * 0.61, height * 0.94, width * 0.18, height * 0.065, "ถัดไป ›", () => {
-      if (!this.decidedTopics.has(topic.id)) {
-        this.feedback = "เลือกแจ้งหรือข้ามหัวข้อนี้ก่อนนะครับ";
-        this.draw();
-        return;
-      }
-      this.topicIndex += 1;
-      this.draw();
-    }, textSize(15), true);
+        : hasShared
+          ? "เลือกแล้ว: แจ้งข้อมูลนี้"
+          : "เลือกแล้ว: ข้ามหัวข้อนี้";
+    this.add
+      .text(cx, height * 0.84, choiceStatus, {
+        fontFamily: this.uiFont,
+        fontSize: textSize(14),
+        fontStyle: "bold",
+        color: this.feedback.startsWith("กรุณาแจ้ง")
+          ? "#ffd0bd"
+          : this.decidedTopics.has(topic.id)
+            ? "#fff2cf"
+            : "#ffffff",
+        stroke: "#171411",
+        strokeThickness: 3,
+        align: "center",
+      })
+      .setOrigin(0.5)
+      .setDepth(8);
+    if (this.topicIndex > 0)
+      this.button(
+        width * 0.39,
+        height * 0.94,
+        width * 0.18,
+        height * 0.065,
+        "‹ ก่อนหน้า",
+        () => {
+          this.topicIndex -= 1;
+          this.draw();
+        },
+        textSize(15),
+        false,
+      );
+    if (this.topicIndex < preInjectionTopics.length - 1)
+      this.button(
+        width * 0.61,
+        height * 0.94,
+        width * 0.18,
+        height * 0.065,
+        "ถัดไป ›",
+        () => {
+          if (!this.decidedTopics.has(topic.id)) {
+            this.feedback = "เลือกแจ้งหรือข้ามหัวข้อนี้ก่อนนะครับ";
+            this.draw();
+            return;
+          }
+          this.topicIndex += 1;
+          this.draw();
+        },
+        textSize(15),
+        true,
+      );
     if (
       this.topicIndex === preInjectionTopics.length - 1 &&
       this.decidedTopics.has(topic.id)
@@ -327,22 +464,70 @@ export class MedicationPatientFlowScene extends Phaser.Scene {
     }
   }
 
-  private drawSpeechBubble(x: number, y: number, width: number, height: number, fill: number, border: number, tailRight: boolean) {
+  private drawSpeechBubble(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    fill: number,
+    border: number,
+    tailRight: boolean,
+  ) {
     const graphics = this.add.graphics().setDepth(7);
     graphics.fillStyle(fill, 1);
     graphics.lineStyle(2, border, 1);
     graphics.fillRoundedRect(x - width / 2, y - height / 2, width, height, 18);
-    graphics.strokeRoundedRect(x - width / 2, y - height / 2, width, height, 18);
+    graphics.strokeRoundedRect(
+      x - width / 2,
+      y - height / 2,
+      width,
+      height,
+      18,
+    );
     const tailX = tailRight ? x + width * 0.34 : x - width * 0.34;
     const direction = tailRight ? 1 : -1;
-    graphics.fillTriangle(tailX, y + height / 2 - 4, tailX + direction * 20, y + height / 2 + 18, tailX + direction * 35, y + height / 2 - 4);
-    graphics.lineBetween(tailX, y + height / 2 - 3, tailX + direction * 20, y + height / 2 + 18);
-    graphics.lineBetween(tailX + direction * 20, y + height / 2 + 18, tailX + direction * 35, y + height / 2 - 3);
+    graphics.fillTriangle(
+      tailX,
+      y + height / 2 - 4,
+      tailX + direction * 20,
+      y + height / 2 + 18,
+      tailX + direction * 35,
+      y + height / 2 - 4,
+    );
+    graphics.lineBetween(
+      tailX,
+      y + height / 2 - 3,
+      tailX + direction * 20,
+      y + height / 2 + 18,
+    );
+    graphics.lineBetween(
+      tailX + direction * 20,
+      y + height / 2 + 18,
+      tailX + direction * 35,
+      y + height / 2 - 3,
+    );
   }
 
-  private drawSpeakerTag(x: number, y: number, label: string, color: number, fontSize: string) {
-    this.add.rectangle(x, y, 150, 30, color).setStrokeStyle(1.5, 0xffffff).setDepth(8);
-    this.add.text(x, y, label, { fontFamily: this.uiFont, fontSize, fontStyle: "bold", color: "#ffffff" }).setOrigin(0.5).setDepth(9);
+  private drawSpeakerTag(
+    x: number,
+    y: number,
+    label: string,
+    color: number,
+    fontSize: string,
+  ) {
+    this.add
+      .rectangle(x, y, 150, 30, color)
+      .setStrokeStyle(1.5, 0xffffff)
+      .setDepth(8);
+    this.add
+      .text(x, y, label, {
+        fontFamily: this.uiFont,
+        fontSize,
+        fontStyle: "bold",
+        color: "#ffffff",
+      })
+      .setOrigin(0.5)
+      .setDepth(9);
   }
 
   private drawTopicChoice(
@@ -356,19 +541,23 @@ export class MedicationPatientFlowScene extends Phaser.Scene {
     textSize: string,
     action: () => void,
   ) {
-    const face = this.add.rectangle(x, y, width, height, selected ? selectedColor : 0xfffaf0)
+    const face = this.add
+      .rectangle(x, y, width, height, selected ? selectedColor : 0xfffaf0)
       .setStrokeStyle(selected ? 3 : 1.5, selected ? 0x20201d : 0x51493f)
       .setDepth(7)
       .setInteractive({ useHandCursor: true });
     const prefix = selected ? (label === "แจ้งข้อมูลนี้" ? "✓  " : "↷  ") : "";
-    const text = this.add.text(x, y, `${prefix}${label}`, {
-      fontFamily: this.uiFont,
-      fontSize: textSize,
-      fontStyle: "bold",
-      color: selected && selectedColor === 0x338a58 ? "#ffffff" : "#28231d",
-      align: "center",
-      wordWrap: { width: width - 24 },
-    }).setOrigin(0.5).setDepth(8);
+    const text = this.add
+      .text(x, y, `${prefix}${label}`, {
+        fontFamily: this.uiFont,
+        fontSize: textSize,
+        fontStyle: "bold",
+        color: selected && selectedColor === 0x338a58 ? "#ffffff" : "#28231d",
+        align: "center",
+        wordWrap: { width: width - 24 },
+      })
+      .setOrigin(0.5)
+      .setDepth(8);
     face.on("pointerover", () => {
       if (!selected) face.setFillStyle(0xf2e3c8);
     });
@@ -394,28 +583,63 @@ export class MedicationPatientFlowScene extends Phaser.Scene {
     const panelW = Math.min(width * 0.56, 720);
     const panelH = Math.min(height * 0.73, 590);
     const panelScale = Math.min(1, panelW / 720, panelH / 590);
-    const panelTextSize = (size: number) => `${Math.max(12, size * panelScale)}px`;
-    this.add.rectangle(panelX + 6, panelY + 8, panelW, panelH, 0x171411, 0.4).setDepth(2);
-    this.add.rectangle(panelX, panelY, panelW, panelH, 0xf1e7d4)
+    const panelTextSize = (size: number) =>
+      `${Math.max(12, size * panelScale)}px`;
+    this.add
+      .rectangle(panelX + 6, panelY + 8, panelW, panelH, 0x171411, 0.4)
+      .setDepth(2);
+    this.add
+      .rectangle(panelX, panelY, panelW, panelH, 0xf1e7d4)
       .setStrokeStyle(3, 0x29251f)
       .setDepth(3);
-    this.add.rectangle(panelX, panelY, panelW - 12, panelH - 12, 0xfaf6ed)
+    this.add
+      .rectangle(panelX, panelY, panelW - 12, panelH - 12, 0xfaf6ed)
       .setStrokeStyle(1, 0xc4b69b)
       .setDepth(4);
-    this.add.rectangle(panelX, panelY - panelH * 0.5 + 7, panelW - 8, 10, 0x754444).setDepth(5);
-    this.add.text(panelX - panelW * 0.42, panelY - panelH * 0.39, "INJECTION SITE", {
-      fontFamily: "Arial, sans-serif", fontSize: panelTextSize(12), fontStyle: "bold", color: "#754444", letterSpacing: 2,
-    }).setOrigin(0, 0.5).setDepth(6);
-    this.add.text(panelX - panelW * 0.42, panelY - panelH * 0.3, "เลือกตำแหน่งฉีด", {
-      fontFamily: this.uiFont, fontSize: panelTextSize(27), fontStyle: "bold", color: "#29251f",
-    }).setOrigin(0, 0.5).setDepth(6);
-    this.add.rectangle(panelX, panelY - panelH * 0.21, panelW * 0.84, 8 * panelScale, 0xd8cbb2).setDepth(5);
+    this.add
+      .rectangle(panelX, panelY - panelH * 0.5 + 7, panelW - 8, 10, 0x754444)
+      .setDepth(5);
+    this.add
+      .text(panelX - panelW * 0.42, panelY - panelH * 0.39, "INJECTION SITE", {
+        fontFamily: "Arial, sans-serif",
+        fontSize: panelTextSize(12),
+        fontStyle: "bold",
+        color: "#754444",
+        letterSpacing: 2,
+      })
+      .setOrigin(0, 0.5)
+      .setDepth(6);
+    this.add
+      .text(panelX - panelW * 0.42, panelY - panelH * 0.3, "เลือกตำแหน่งฉีด", {
+        fontFamily: this.uiFont,
+        fontSize: panelTextSize(27),
+        fontStyle: "bold",
+        color: "#29251f",
+      })
+      .setOrigin(0, 0.5)
+      .setDepth(6);
+    this.add
+      .rectangle(
+        panelX,
+        panelY - panelH * 0.21,
+        panelW * 0.84,
+        8 * panelScale,
+        0xd8cbb2,
+      )
+      .setDepth(5);
 
-    const body = this.add.image(width * 0.68, height * 0.51, "medicationPatientBody");
+    const body = this.add.image(
+      width * 0.68,
+      height * 0.51,
+      "medicationPatientBody",
+    );
     const source = this.textures
       .get("medicationPatientBody")
       .getSourceImage() as HTMLImageElement;
-    const bodyHeight = Math.min(height * 0.94, width * 0.7 * (source.height / source.width));
+    const bodyHeight = Math.min(
+      height * 0.94,
+      width * 0.7 * (source.height / source.width),
+    );
     body
       .setDisplaySize((bodyHeight * source.width) / source.height, bodyHeight)
       .setDepth(2);
@@ -426,22 +650,61 @@ export class MedicationPatientFlowScene extends Phaser.Scene {
       const markerX = bodyLeft + body.displayWidth * site.x;
       const markerY = bodyTop + body.displayHeight * site.y;
       const rowY = panelY - panelH * 0.13 + index * panelH * 0.075;
-      this.add.rectangle(panelX, rowY, panelW * 0.84, panelH * 0.07, selected ? 0xf0e0b6 : 0xfffcf5)
+      this.add
+        .rectangle(
+          panelX,
+          rowY,
+          panelW * 0.84,
+          panelH * 0.07,
+          selected ? 0xf0e0b6 : 0xfffcf5,
+        )
         .setStrokeStyle(selected ? 2 : 1, selected ? 0xb38432 : 0xc7b99f)
         .setDepth(5);
-      this.add.circle(panelX - panelW * 0.34, rowY, Math.min(16 * panelScale, panelH * 0.03), selected ? 0x754444 : 0x827661)
+      this.add
+        .circle(
+          panelX - panelW * 0.34,
+          rowY,
+          Math.min(16 * panelScale, panelH * 0.03),
+          selected ? 0x754444 : 0x827661,
+        )
         .setStrokeStyle(1.5, 0x39332a)
         .setDepth(6);
-      this.add.text(panelX - panelW * 0.34, rowY, selected ? "✓" : `${index + 1}`, {
-        fontFamily: "Arial, sans-serif", fontSize: panelTextSize(13), fontStyle: "bold", color: "#ffffff",
-      }).setOrigin(0.5).setDepth(7);
-      this.add.text(panelX - panelW * 0.25, rowY, site.label, {
-        fontFamily: this.uiFont, fontSize: panelTextSize(17), fontStyle: "bold", color: "#29251f",
-      }).setOrigin(0, 0.5).setDepth(6);
-      this.add.text(panelX + panelW * 0.39, rowY, selected ? "เลือกแล้ว" : "", {
-        fontFamily: this.uiFont, fontSize: panelTextSize(12), fontStyle: "bold", color: "#754444",
-      }).setOrigin(1, 0.5).setDepth(6);
-      this.add.circle(markerX, markerY, Math.max(23, 34 * scale), selected ? 0x754444 : 0xffa600, 0.25).setDepth(4);
+      this.add
+        .text(panelX - panelW * 0.34, rowY, selected ? "✓" : `${index + 1}`, {
+          fontFamily: "Arial, sans-serif",
+          fontSize: panelTextSize(13),
+          fontStyle: "bold",
+          color: "#ffffff",
+        })
+        .setOrigin(0.5)
+        .setDepth(7);
+      this.add
+        .text(panelX - panelW * 0.25, rowY, site.label, {
+          fontFamily: this.uiFont,
+          fontSize: panelTextSize(17),
+          fontStyle: "bold",
+          color: "#29251f",
+        })
+        .setOrigin(0, 0.5)
+        .setDepth(6);
+      this.add
+        .text(panelX + panelW * 0.39, rowY, selected ? "เลือกแล้ว" : "", {
+          fontFamily: this.uiFont,
+          fontSize: panelTextSize(12),
+          fontStyle: "bold",
+          color: "#754444",
+        })
+        .setOrigin(1, 0.5)
+        .setDepth(6);
+      this.add
+        .circle(
+          markerX,
+          markerY,
+          Math.max(23, 34 * scale),
+          selected ? 0x754444 : 0xffa600,
+          0.25,
+        )
+        .setDepth(4);
       const marker = this.add
         .circle(
           markerX,
@@ -452,11 +715,23 @@ export class MedicationPatientFlowScene extends Phaser.Scene {
         .setStrokeStyle(2.5, selected ? 0xfaf6ed : 0x352a16)
         .setDepth(6)
         .setInteractive({ useHandCursor: true });
-      const markerText = this.add.text(markerX, markerY, selected ? "✓" : `${index + 1}`, {
-        fontFamily: "Arial, sans-serif", fontSize: textSize(16), fontStyle: "bold", color: "#ffffff",
-      }).setOrigin(0.5).setDepth(7);
-      marker.on("pointerover", () => { marker.setScale(1.1); markerText.setScale(1.1); });
-      marker.on("pointerout", () => { marker.setScale(1); markerText.setScale(1); });
+      const markerText = this.add
+        .text(markerX, markerY, selected ? "✓" : `${index + 1}`, {
+          fontFamily: "Arial, sans-serif",
+          fontSize: textSize(16),
+          fontStyle: "bold",
+          color: "#ffffff",
+        })
+        .setOrigin(0.5)
+        .setDepth(7);
+      marker.on("pointerover", () => {
+        marker.setScale(1.1);
+        markerText.setScale(1.1);
+      });
+      marker.on("pointerout", () => {
+        marker.setScale(1);
+        markerText.setScale(1);
+      });
       marker.on("pointerdown", () => {
         this.click();
         this.selectedSite = site.id;
@@ -465,15 +740,37 @@ export class MedicationPatientFlowScene extends Phaser.Scene {
       });
     });
     const statusY = panelY + panelH * 0.395;
-    this.add.rectangle(panelX, statusY, panelW * 0.84, panelH * 0.12, 0xf0e6d2)
+    this.add
+      .rectangle(panelX, statusY, panelW * 0.84, panelH * 0.12, 0xf0e6d2)
       .setStrokeStyle(1.5, 0x9c8968)
       .setDepth(5);
-    this.add.text(panelX - panelW * 0.38, statusY - panelH * 0.025, "สถานะ", {
-      fontFamily: this.uiFont, fontSize: panelTextSize(12), fontStyle: "bold", color: "#754444",
-    }).setOrigin(0, 0.5).setDepth(6);
-    this.add.text(panelX - panelW * 0.38, statusY + panelH * 0.018, this.feedback.startsWith("กรุณา") ? this.feedback : this.selectedSite ? this.feedback : "ยังไม่ได้เลือกตำแหน่งฉีด", {
-      fontFamily: this.uiFont, fontSize: panelTextSize(14), color: "#29251f", wordWrap: { width: panelW * 0.74 },
-    }).setOrigin(0, 0.5).setDepth(6);
+    this.add
+      .text(panelX - panelW * 0.38, statusY - panelH * 0.025, "สถานะ", {
+        fontFamily: this.uiFont,
+        fontSize: panelTextSize(12),
+        fontStyle: "bold",
+        color: "#754444",
+      })
+      .setOrigin(0, 0.5)
+      .setDepth(6);
+    this.add
+      .text(
+        panelX - panelW * 0.38,
+        statusY + panelH * 0.018,
+        this.feedback.startsWith("กรุณา")
+          ? this.feedback
+          : this.selectedSite
+            ? this.feedback
+            : "ยังไม่ได้เลือกตำแหน่งฉีด",
+        {
+          fontFamily: this.uiFont,
+          fontSize: panelTextSize(14),
+          color: "#29251f",
+          wordWrap: { width: panelW * 0.74 },
+        },
+      )
+      .setOrigin(0, 0.5)
+      .setDepth(6);
     this.button(
       width * 0.87,
       height * 0.9,

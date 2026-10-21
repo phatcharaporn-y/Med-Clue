@@ -1,11 +1,11 @@
 ﻿import Phaser from "phaser";
 
-const missionTasks = [
-  "บริหารยา Regular Insulin อย่างถูกต้องตามหลัก 10R",
-  "ตรวจระดับน้ำตาลในเลือด",
-  "เลือกชนิดและขนาดยา",
-  "ประเมินความพร้อมในการรับประทานอาหาร",
-  "ติดตามอาการหลังให้ยา",
+const guideSteps = [
+  "อ่านข้อมูลผู้ป่วยและตรวจสอบประวัติให้ครบถ้วน",
+  "ประเมินอาการและตรวจระดับน้ำตาลในเลือด",
+  "ตรวจสอบแผนการรักษาและคำนวณขนาดยาให้ถูกต้อง",
+  "ยืนยันตัวผู้ป่วยและตรวจสอบยาให้ครบตามหลัก 10R",
+  "ให้ยาอย่างปลอดภัย แล้วติดตามอาการและระดับน้ำตาล",
 ];
 
 type PatientPage = 1 | 2;
@@ -276,7 +276,7 @@ export class CaseBriefScene extends Phaser.Scene {
 
     const missionFont = Math.max(16, Math.round(21 * textScale));
     this.add
-      .text(width * 0.755, height * 0.31, "MISSION / TASK", {
+      .text(width * 0.755, height * 0.31, "GUIDE", {
         fontFamily: this.uiFontFamily,
         fontSize: missionFont + "px",
         fontStyle: "bold",
@@ -288,7 +288,7 @@ export class CaseBriefScene extends Phaser.Scene {
     const taskFont = Math.max(15, Math.round(19 * textScale));
     const taskStartY = height * 0.385;
     const taskGap = height * 0.065;
-    missionTasks.forEach((task, index) => {
+    guideSteps.forEach((task, index) => {
       const y = taskStartY + index * taskGap;
       this.add
         .text(width * 0.638, y, String(index + 1), {
