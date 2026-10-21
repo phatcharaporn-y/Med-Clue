@@ -37,6 +37,8 @@ export class MedicationTrayScene extends Phaser.Scene {
   private origin?: SceneOrigin;
   private hasAnimatedIn = false;
   private isClosing = false;
+  private isChildSceneOpen = false;
+  private backLabel?: Phaser.GameObjects.Text;
   private backgroundOverlay?: Phaser.GameObjects.Rectangle;
   private trayVisual?: Phaser.GameObjects.Image;
   private sceneContent: Array<
@@ -52,6 +54,7 @@ export class MedicationTrayScene extends Phaser.Scene {
     this.origin = data.origin;
     this.hasAnimatedIn = false;
     this.isClosing = false;
+    this.isChildSceneOpen = false;
   }
 
   preload() {
@@ -140,6 +143,7 @@ export class MedicationTrayScene extends Phaser.Scene {
             : item.id === "dose-calculator"
               ? "MedicationDose"
               : "MedicationAspiration";
+        this.setChildSceneOpen(true);
         this.scene.pause();
         this.scene.launch(sceneKey);
       });
@@ -367,6 +371,7 @@ export class MedicationTrayScene extends Phaser.Scene {
       });
       this.sound.play("trayDoorSound", { volume: 0.3 });
       this.game.events.emit("go-to-medicine-cabinet");
+      this.setChildSceneOpen(true);
       this.scene.pause();
       this.scene.launch("MedicationCabinet");
     });
@@ -393,7 +398,14 @@ export class MedicationTrayScene extends Phaser.Scene {
       .setOrigin(0, 0.5)
       .setDepth(10)
       .setInteractive({ useHandCursor: true });
+    this.backLabel = label;
+    label.setVisible(!this.isChildSceneOpen);
     label.on("pointerdown", () => this.close());
+  }
+
+  public setChildSceneOpen(open: boolean) {
+    this.isChildSceneOpen = open;
+    this.backLabel?.setVisible(!open);
   }
 
   private close() {

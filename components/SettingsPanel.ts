@@ -43,7 +43,7 @@ export function drawSettingsPanel(
   }
 
   scene.add
-    .rectangle(centerX, centerY, width, height, 0x071313, 0.72)
+    .rectangle(centerX, centerY, width, height, 0x000000, 0.48)
     .setDepth(30)
     .setInteractive();
   scene.add
@@ -89,8 +89,8 @@ export function drawSettingsPanel(
     .setOrigin(0, 0.5)
     .setDepth(35);
   const toggle = scene.add
-    .rectangle(centerX + panelWidth * 0.22, soundRowY, 112, 38, 0x477263)
-    .setStrokeStyle(1, 0x315344)
+    .rectangle(centerX + panelWidth * 0.22, soundRowY, 112, 38, 0x754444)
+    .setStrokeStyle(1, 0x3f2523)
     .setDepth(32)
     .setInteractive({ useHandCursor: true });
   const toggleLabel = scene.add
@@ -104,7 +104,7 @@ export function drawSettingsPanel(
     .setDepth(33);
   const syncToggle = () => {
     const isMuted = sound.mute;
-    toggle.setFillStyle(isMuted ? 0x8a5147 : 0x477263);
+    toggle.setFillStyle(isMuted ? 0x786b5b : 0x754444);
     toggleLabel.setText(isMuted ? "ปิดเสียง" : "เปิดเสียง");
   };
   syncToggle();
@@ -149,7 +149,7 @@ export function drawSettingsPanel(
       sliderY,
       sliderWidth * sound.volume,
       8,
-      0x557f69,
+      0x754444,
     )
     .setOrigin(0, 0.5)
     .setDepth(33);
@@ -160,7 +160,7 @@ export function drawSettingsPanel(
       11,
       0xfaf7ed,
     )
-    .setStrokeStyle(2.5, 0x557f69)
+    .setStrokeStyle(2.5, 0x754444)
     .setDepth(34)
     .setInteractive({ useHandCursor: true });
   const trackHitArea = scene.add
@@ -193,7 +193,8 @@ export function drawSettingsPanel(
 
   const actionY = centerY + panelHeight * 0.265;
   const closeButton = scene.add
-    .rectangle(centerX, actionY, Math.min(220, panelWidth * 0.52), 42, 0x557567)
+    .rectangle(centerX, actionY, Math.min(220, panelWidth * 0.52), 42, 0x754444)
+    .setStrokeStyle(1.5, 0x3f2523)
     .setDepth(32)
     .setInteractive({ useHandCursor: true });
   scene.add
@@ -205,13 +206,14 @@ export function drawSettingsPanel(
     })
     .setOrigin(0.5)
     .setDepth(33);
-  closeButton.on("pointerover", () => closeButton.setFillStyle(0x668779));
-  closeButton.on("pointerout", () => closeButton.setFillStyle(0x557567));
+  closeButton.on("pointerover", () => closeButton.setFillStyle(0x875252));
+  closeButton.on("pointerout", () => closeButton.setFillStyle(0x754444));
   closeButton.on("pointerdown", options.onClose);
 
   const exitY = centerY + panelHeight * 0.355;
   const exitButton = scene.add
-    .rectangle(centerX, exitY, Math.min(220, panelWidth * 0.52), 42, 0x80534a)
+    .rectangle(centerX, exitY, Math.min(220, panelWidth * 0.52), 42, 0x754444)
+    .setStrokeStyle(1.5, 0x3f2523)
     .setDepth(32)
     .setInteractive({ useHandCursor: true });
   scene.add
@@ -223,7 +225,7 @@ export function drawSettingsPanel(
     })
     .setOrigin(0.5)
     .setDepth(33);
-  exitButton.on("pointerover", () => exitButton.setFillStyle(0x95645a));
-  exitButton.on("pointerout", () => exitButton.setFillStyle(0x80534a));
+  exitButton.on("pointerover", () => exitButton.setFillStyle(0x875252));
+  exitButton.on("pointerout", () => exitButton.setFillStyle(0x754444));
   exitButton.on("pointerdown", options.onExit);
 }

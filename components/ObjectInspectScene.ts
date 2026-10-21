@@ -15,6 +15,8 @@ export class ObjectInspectScene extends Phaser.Scene {
   private objectId = "";
   private origin?: SceneOrigin;
   private doctorPage: 1 | 2 = 1;
+  private summaryPage: 1 | 2 = 1;
+  private activeMARSelect: "medication" | "route" | "site" | null = null;
   private uiFontFamily = "Arial, sans-serif";
   private countdownVolume = 0.2;
   private hasAnimatedIn = false;
@@ -41,13 +43,17 @@ export class ObjectInspectScene extends Phaser.Scene {
   init(data: InspectSceneData) {
     this.objectId = data.objectId ?? "";
     this.origin = data.origin;
+    if (this.objectId === "doctor-desk") this.doctorPage = 1;
+    this.summaryPage = 1;
     this.hasAnimatedIn = false;
     this.isClosing = false;
+    this.activeMARSelect = null;
   }
 
   preload() {
     this.load.image("largeMonitor", "/images/game/monitorbig.png");
     this.load.image("doctorFolder", "/images/game/floder_brown.png");
+    this.load.image("marFolder", "/images/game/floder_blue.png");
     this.load.image("pageArrow", "/images/game/arrow.png");
     this.load.audio("inspectIconClick", "/sounds/iconclick.wav");
     this.load.audio("inspectCountdown", "/sounds/countdown-bleeps-.wav");
@@ -150,24 +156,51 @@ export class ObjectInspectScene extends Phaser.Scene {
       .setInteractive();
     if (!this.hasAnimatedIn) background.setAlpha(0);
 
-    const folderSource = this.textures
+    const isAfterAdministration = Boolean(
+      this.registry.get("patientMedicationAdministered"),
+    );
+    const savedRecord = this.registry.get("medicationAdministrationRecord");
+    const folderTexture = isAfterAdministration ? "marFolder" : "doctorFolder";
+    const doctorFolderSource = this.textures
       .get("doctorFolder")
       .getSourceImage() as HTMLImageElement;
-    const folderScale = Math.min(
-      (width * 0.52) / folderSource.width,
-      (height * 1.04) / folderSource.height,
+    const folderSource = this.textures
+      .get(folderTexture)
+      .getSourceImage() as HTMLImageElement;
+    const doctorFolderScale = Math.min(
+      (width * 0.52) / doctorFolderSource.width,
+      (height * 1.04) / doctorFolderSource.height,
     );
+    const doctorFolderWidth = doctorFolderSource.width * doctorFolderScale;
+    const folderScale = isAfterAdministration
+      ? Math.min(
+          (width * 0.52) / folderSource.width,
+          (height * 1.04) / folderSource.height,
+          doctorFolderWidth / folderSource.width,
+        )
+      : doctorFolderScale;
     const folderWidth = folderSource.width * folderScale;
     const folderHeight = folderSource.height * folderScale;
     const centerX = width / 2;
     const centerY = height * 0.48;
     const visual = this.add
-      .image(centerX, centerY, "doctorFolder")
+      .image(centerX, centerY, folderTexture)
       .setScale(folderScale)
       .setDepth(2);
     const contentStart = this.children.list.length;
 
-    if (this.doctorPage === 1)
+    if (isAfterAdministration) {
+      if (savedRecord) {
+        this.drawMARSummary(centerX, centerY, folderWidth, folderHeight, width, savedRecord);
+      } else {
+        this.drawMARForm(centerX, centerY, folderWidth, folderHeight, width);
+      }
+      this.drawBackLabel(
+        Math.max(24, width * 0.025),
+        Math.max(30, height * 0.045),
+        "< กลับห้องผู้ป่วย",
+      );
+    } else if (this.doctorPage === 1) {
       this.drawPatientHistory(
         centerX,
         centerY,
@@ -175,30 +208,48 @@ export class ObjectInspectScene extends Phaser.Scene {
         folderHeight,
         width,
       );
-    else
+    } else {
       this.drawDoctorOrder(centerX, centerY, folderWidth, folderHeight, width);
+    }
 
-    this.drawBackLabel(
-      Math.max(24, width * 0.025),
-      Math.max(30, height * 0.045),
-      this.doctorPage === 2 ? "< คำสั่งแพทย์" : "< ข้อมูลผู้ป่วย",
-    );
-
-    const arrowX = centerX + folderWidth * 0.35;
-    const arrow = this.add
-      .image(arrowX, centerY + folderHeight * 0.34, "pageArrow")
-      .setScale(
-        (folderWidth * 0.18) /
-          this.textures.get("pageArrow").getSourceImage().width,
-      )
-      .setFlipX(this.doctorPage === 2)
-      .setDepth(5)
-      .setInteractive({ useHandCursor: true });
-    arrow.on("pointerdown", () => {
-      this.sound.play("inspectPageFlip", { volume: 2.0 });
-      this.doctorPage = this.doctorPage === 1 ? 2 : 1;
-      this.draw();
-    });
+    if (!isAfterAdministration) {
+      this.drawBackLabel(
+        Math.max(24, width * 0.025),
+        Math.max(30, height * 0.045),
+        this.doctorPage === 2 ? "< คำสั่งแพทย์" : "< ข้อมูลผู้ป่วย",
+      );
+      const arrowX = centerX + folderWidth * 0.35;
+      const arrow = this.add
+        .image(arrowX, centerY + folderHeight * 0.34, "pageArrow")
+        .setScale(
+          (folderWidth * 0.18) /
+            this.textures.get("pageArrow").getSourceImage().width,
+        )
+        .setFlipX(this.doctorPage === 2)
+        .setDepth(5)
+        .setInteractive({ useHandCursor: true });
+      arrow.on("pointerdown", () => {
+        this.sound.play("inspectPageFlip", { volume: 2.0 });
+        this.doctorPage = this.doctorPage === 1 ? 2 : 1;
+        this.draw();
+      });
+    } else if (savedRecord) {
+      const arrowX = centerX + folderWidth * 0.35;
+      const arrow = this.add
+        .image(arrowX, centerY + folderHeight * 0.34, "pageArrow")
+        .setScale(
+          (folderWidth * 0.18) /
+            this.textures.get("pageArrow").getSourceImage().width,
+        )
+        .setFlipX(this.summaryPage === 2)
+        .setDepth(5)
+        .setInteractive({ useHandCursor: true });
+      arrow.on("pointerdown", () => {
+        this.sound.play("inspectPageFlip", { volume: 2.0 });
+        this.summaryPage = this.summaryPage === 1 ? 2 : 1;
+        this.draw();
+      });
+    }
     this.animateSceneEntry(
       background,
       visual,
@@ -423,6 +474,494 @@ export class ObjectInspectScene extends Phaser.Scene {
         },
       )
       .setDepth(3);
+  }
+
+  private getMARDraft() {
+    const savedDraft = this.registry.get("medicationAdministrationDraft");
+    if (savedDraft) return savedDraft;
+
+    const preparation = this.registry.get("medicationPreparation") ?? {};
+    const bottleNames = [
+      "Regular insulin U-100",
+      "Insulin glargine U-100",
+      "NPH insulin U-100",
+    ];
+    const injectionSite = this.registry.get("patientInjectionSite");
+    return {
+      medication: bottleNames[preparation.medicineBottle ?? 0] ?? bottleNames[0],
+      dose: preparation.calculatedDose ?? 4,
+      route: "SC",
+      site: injectionSite?.label ?? "หน้าท้องขวา",
+      time: "07:30",
+    };
+  }
+
+  private drawMARForm(
+    centerX: number,
+    centerY: number,
+    folderWidth: number,
+    folderHeight: number,
+    width: number,
+  ) {
+    const draft = this.getMARDraft();
+    const fontSize = `${Math.max(10, Math.min(16, width * 0.008))}px`;
+    const headingSize = `${Math.max(14, Math.min(22, width * 0.011))}px`;
+    const left = centerX - folderWidth * 0.31;
+    const valueX = centerX + folderWidth * 0.015;
+    const titleY = centerY - folderHeight * 0.34;
+
+    this.add
+      .text(centerX, titleY, "MAR  /  eMAR", {
+        fontFamily: this.uiFontFamily,
+        fontSize: headingSize,
+        fontStyle: "bold",
+        color: "#25211c",
+      })
+      .setOrigin(0.5)
+      .setDepth(3);
+
+    const details = [
+      ["ยา", "Regular insulin U-100 SC ตาม correction scale"],
+      ["เวลา", "ก่อนอาหาร  เช้า 07:30  ·  กลางวัน 11:30  ·  เย็น 16:30"],
+      ["ระวัง", "ตรวจ CBG, อาการ hypoglycemia, ความพร้อมรับประทานอาหาร และตำแหน่งฉีด"],
+    ];
+    details.forEach(([label, value], index) => {
+      const y = centerY - folderHeight * 0.25 + index * folderHeight * 0.082;
+      this.add
+        .text(left, y, label, {
+          fontFamily: this.uiFontFamily,
+          fontSize,
+          fontStyle: "bold",
+          color: "#28231e",
+        })
+        .setDepth(3);
+      this.add
+        .text(left + folderWidth * 0.095, y, value, {
+          fontFamily: this.uiFontFamily,
+          fontSize,
+          color: "#28231e",
+          wordWrap: { width: folderWidth * 0.66 },
+          lineSpacing: 3,
+        })
+        .setDepth(3);
+    });
+
+    const formTitleY = centerY + folderHeight * 0.015;
+    this.add
+      .text(left, formTitleY, "บันทึกการให้ยา", {
+        fontFamily: this.uiFontFamily,
+        fontSize: `${Math.max(14, Math.min(22, width * 0.011))}px`,
+        fontStyle: "bold",
+        color: "#25211c",
+      })
+      .setOrigin(0, 0.5)
+      .setDepth(3);
+
+    const formWidth = folderWidth * 0.72;
+    const gap = formWidth * 0.025;
+    const fieldHeight = Math.max(38, Math.min(56, folderHeight * 0.052));
+    const firstY = formTitleY + folderHeight * 0.082;
+    const medWidth = formWidth * 0.44;
+    const doseWidth = formWidth * 0.22;
+    const routeWidth = formWidth - medWidth - doseWidth - gap * 2;
+    const fieldFontSize = `${Math.max(10, Math.min(16, width * 0.008))}px`;
+
+    const drawField = (
+      x: number,
+      y: number,
+      fieldWidth: number,
+      value: string,
+      onClick?: () => void,
+    ) => {
+      const field = this.add
+        .rectangle(x, y, fieldWidth, fieldHeight, 0xfffcf5)
+        .setStrokeStyle(2, 0x3b342d)
+        .setDepth(4);
+      const label = this.add
+        .text(x - fieldWidth / 2 + 10, y, value, {
+          fontFamily: this.uiFontFamily,
+          fontSize: fieldFontSize,
+          color: "#39332d",
+          wordWrap: { width: fieldWidth - 28 },
+        })
+        .setOrigin(0, 0.5)
+        .setDepth(5);
+      if (onClick) {
+        field.setInteractive({ useHandCursor: true }).on("pointerdown", onClick);
+        label.setInteractive({ useHandCursor: true }).on("pointerdown", onClick);
+        this.add
+          .text(x + fieldWidth / 2 - 12, y, "⌄", {
+            fontFamily: "Arial, sans-serif",
+            fontSize: fieldFontSize,
+            color: "#29251f",
+          })
+          .setOrigin(0.5)
+          .setDepth(5)
+          .setInteractive({ useHandCursor: true })
+          .on("pointerdown", onClick);
+      }
+    };
+
+    let fieldX = centerX - formWidth / 2 + medWidth / 2;
+    drawField(fieldX, firstY, medWidth, draft.medication, () => {
+      this.activeMARSelect = this.activeMARSelect === "medication" ? null : "medication";
+      this.draw();
+    });
+    const medicationOptions = [
+      "Regular insulin U-100",
+      "Insulin glargine U-100",
+      "NPH insulin U-100",
+    ];
+    const medicationFieldX = fieldX;
+    fieldX += medWidth / 2 + gap + doseWidth / 2;
+    drawField(fieldX, firstY, doseWidth, `${draft.dose} units`);
+    const stepSize = Math.max(24, fieldHeight * 0.55);
+    [
+      { delta: 1, label: "▲" },
+      { delta: -1, label: "▼" },
+    ].forEach(({ delta, label }, index) => {
+      const controlX = fieldX + doseWidth / 2 - 12;
+      const controlY = firstY + (index === 0 ? -stepSize / 2 : stepSize / 2);
+      this.add
+        .text(controlX, controlY, label, {
+          fontFamily: "Arial, sans-serif",
+          fontSize: `${Math.max(16, fieldHeight * 0.42)}px`,
+          fontStyle: "bold",
+          color: "#29251f",
+        })
+        .setOrigin(0.5)
+        .setDepth(6)
+        .setInteractive({ useHandCursor: true })
+        .on("pointerdown", () => {
+          this.saveMARField({ dose: Math.max(0, draft.dose + delta) });
+        });
+    });
+    fieldX += doseWidth / 2 + gap + routeWidth / 2;
+    drawField(fieldX, firstY, routeWidth, draft.route, () => {
+      this.activeMARSelect = this.activeMARSelect === "route" ? null : "route";
+      this.draw();
+    });
+    const routeFieldX = fieldX;
+
+    const siteWidth = Math.min(formWidth * 0.48, folderWidth * 0.4);
+    const siteY = firstY + fieldHeight * 1.55;
+    const siteFieldX = centerX - formWidth / 2 + siteWidth / 2;
+    drawField(siteFieldX, siteY, siteWidth, draft.site, () => {
+      this.activeMARSelect = this.activeMARSelect === "site" ? null : "site";
+      this.draw();
+    });
+    const siteOptions = [
+      "ต้นแขนซ้าย",
+      "ต้นแขนขวา",
+      "หน้าท้องซ้าย",
+      "หน้าท้องขวา",
+      "ต้นขาขวา",
+      "ต้นขาซ้าย",
+    ];
+
+    this.drawMARSelectOptions(
+      "medication",
+      medicationFieldX,
+      firstY,
+      medWidth,
+      fieldHeight,
+      medicationOptions,
+      "medication",
+    );
+    this.drawMARSelectOptions(
+      "route",
+      routeFieldX,
+      firstY,
+      routeWidth,
+      fieldHeight,
+      ["SC", "IM", "IV"],
+      "route",
+    );
+    this.drawMARSelectOptions(
+      "site",
+      siteFieldX,
+      siteY,
+      siteWidth,
+      fieldHeight,
+      siteOptions,
+      "site",
+    );
+
+    const buttonY = Math.min(
+      centerY + folderHeight * 0.35,
+      this.scale.height - Math.max(34, folderHeight * 0.055),
+    );
+    this.drawMARButton(centerX, buttonY, Math.min(formWidth * 0.48, 300), "บันทึก", () => {
+      this.registry.set("medicationAdministrationRecord", {
+        ...this.getMARDraft(),
+        savedAt: new Date().toISOString(),
+      });
+      this.sound.play("inspectIconClick", { volume: 0.8 });
+      this.draw();
+    });
+  }
+
+  private saveMARField(update: Record<string, string | number>) {
+    this.registry.set("medicationAdministrationDraft", {
+      ...this.getMARDraft(),
+      ...update,
+    });
+    this.sound.play("inspectIconClick", { volume: 0.65 });
+    this.draw();
+  }
+
+  private drawMARSelectOptions(
+    active: "medication" | "route" | "site",
+    x: number,
+    y: number,
+    fieldWidth: number,
+    fieldHeight: number,
+    options: string[],
+    key: "medication" | "route" | "site",
+  ) {
+    if (this.activeMARSelect !== active) return;
+    const rowHeight = Math.max(32, fieldHeight * 0.82);
+    const menuHeight = options.length * rowHeight;
+    const menuTop = y - fieldHeight / 2 - menuHeight;
+    options.forEach((option, index) => {
+      const optionY = menuTop + rowHeight * (index + 0.5);
+      const row = this.add
+        .rectangle(x, optionY, fieldWidth, rowHeight, 0xfffcf5)
+        .setStrokeStyle(1, 0x78664f)
+        .setDepth(14)
+        .setInteractive({ useHandCursor: true });
+      const label = this.add
+        .text(x - fieldWidth / 2 + 10, optionY, option, {
+          fontFamily: this.uiFontFamily,
+          fontSize: `${Math.max(10, Math.min(16, this.scale.width * 0.008))}px`,
+          color: "#302820",
+          wordWrap: { width: fieldWidth - 20 },
+        })
+        .setOrigin(0, 0.5)
+        .setDepth(15);
+      const selectOption = () => {
+        this.activeMARSelect = null;
+        this.saveMARField({ [key]: option });
+      };
+      row.on("pointerdown", selectOption);
+      label.setInteractive({ useHandCursor: true }).on("pointerdown", selectOption);
+    });
+  }
+
+  private drawMARSummary(
+    centerX: number,
+    centerY: number,
+    folderWidth: number,
+    folderHeight: number,
+    width: number,
+    record: { medication: string; dose: number; route: string; site: string; time?: string },
+  ) {
+    const titleSize = `${Math.max(14, Math.min(22, width * 0.011))}px`;
+    const fontSize = `${Math.max(10, Math.min(16, width * 0.008))}px`;
+    const rounds = this.registry.get("patientConversationRounds") ?? {};
+    const skinAssessment = this.registry.get("patientSkinAssessment") ?? {};
+    const preparation = this.registry.get("medicationPreparation") ?? {};
+    const beforeTopics = rounds.beforeMedicationTopics ?? [];
+    const patientVerified = beforeTopics.some((topic: { id: string }) => topic.id === "identity") &&
+      beforeTopics.some((topic: { id: string }) => topic.id === "wristband");
+    const rights: Array<[string, number | null]> = [
+      ["Right patient", rounds.beforeMedicationCompleted ? (patientVerified ? 100 : 0) : null],
+      ["Right drug", preparation.medicineSelected ? (this.registry.get("patientMedicationAdministered") && preparation.medicineBottle === 0 && record.medication === "Regular insulin U-100" ? 100 : 0) : null],
+      ["Right dose", preparation.doseCalculated ? (preparation.calculatedDose !== null && Number(record.dose) === Number(preparation.calculatedDose) ? 100 : 0) : null],
+      ["Right route (SC)", record.route ? (record.route === "SC" ? 100 : 0) : null],
+      ["Right time", record.time ? 100 : null],
+      ["Right documentation", this.registry.get("medicationAdministrationRecord") ? 100 : null],
+      ["Right history & assessment", rounds.initialInterviewCompleted || skinAssessment.completed ? (rounds.initialInterviewCompleted && skinAssessment.completed ? 100 : 0) : null],
+      ["Right education", rounds.beforeMedicationCompleted ? 100 : null],
+      ["Right evaluation/response", rounds.postMedicationCompleted ? 100 : null],
+      ["Right to refuse (เปิดโอกาสซักถาม)", typeof rounds.rightToRefuseCompleted === "boolean" ? (rounds.rightToRefuseCompleted ? 100 : 0) : null],
+    ];
+    const passedRights = rights.filter(([, percent]) => percent === 100).length;
+    const checkedRights = rights.filter(([, percent]) => percent !== null).length;
+
+    this.add
+      .text(centerX, centerY - folderHeight * 0.34, "Summary", {
+        fontFamily: this.uiFontFamily,
+        fontSize: titleSize,
+        fontStyle: "bold",
+        color: "#25211c",
+      })
+      .setOrigin(0.5)
+      .setDepth(3);
+    if (this.summaryPage === 1) {
+      const status = checkedRights === 10 && passedRights === 10
+        ? "ผ่านเกณฑ์ ✓"
+        : `มีข้อมูลยืนยัน ${checkedRights} / 10 ข้อ`;
+      this.add
+        .text(centerX, centerY - folderHeight * 0.215, status, {
+          fontFamily: this.uiFontFamily,
+          fontSize,
+          fontStyle: "bold",
+          color: "#25211c",
+        })
+        .setOrigin(0.5)
+        .setDepth(3);
+      this.add
+        .text(centerX, centerY - folderHeight * 0.27, `${passedRights}/10`, {
+          fontFamily: this.uiFontFamily,
+          fontSize: `${Math.max(28, Math.min(46, width * 0.027))}px`,
+          fontStyle: "bold",
+          color: "#25211c",
+        })
+        .setOrigin(0.5)
+        .setDepth(3);
+
+      const left = centerX - folderWidth * 0.31;
+      const percentX = centerX + folderWidth * 0.32;
+      rights.forEach(([label, percent], index) => {
+        const y = centerY - folderHeight * 0.145 + index * folderHeight * 0.047;
+        this.add
+          .text(left, y, label, {
+            fontFamily: this.uiFontFamily,
+            fontSize,
+            color: "#28231e",
+            wordWrap: { width: folderWidth * 0.6 },
+          })
+          .setDepth(3);
+        this.add
+          .text(percentX, y, percent === null ? "—" : `${percent}%`, {
+            fontFamily: this.uiFontFamily,
+            fontSize,
+            color: "#28231e",
+          })
+          .setOrigin(1, 0)
+          .setDepth(3);
+      });
+    } else {
+      this.add
+        .text(centerX, centerY - folderHeight * 0.285, "รายละเอียดผลการดูแล", {
+          fontFamily: this.uiFontFamily,
+          fontSize,
+          fontStyle: "bold",
+          color: "#25211c",
+        })
+        .setOrigin(0.5)
+        .setDepth(3);
+
+      const left = centerX - folderWidth * 0.27;
+      const valueX = centerX + folderWidth * 0.055;
+      const errorRows = this.registry.get("medicationErrors") ?? [];
+      const initialAnswers = rounds.initialInterviewAnswers ?? [];
+      const postAnswers = rounds.postMedicationAnswers ?? [];
+      const injectionSite = this.registry.get("patientInjectionSite");
+      const requiredBeforeTopics = (rounds.beforeMedicationTopics ?? []).filter((topic: { required?: boolean }) => topic.required);
+      const correctBeforeTopics = requiredBeforeTopics.filter((topic: { score?: number }) => topic.score === 25).length;
+      const countCorrectAnswers = (answers: Array<{ score?: number; maxScore?: number }>) =>
+        `${answers.filter((answer) => answer.maxScore != null && answer.score === answer.maxScore).length} / ${answers.length} ข้อ`;
+      const medicationPreparationResult = (condition: boolean, completed: boolean) =>
+        completed ? (condition ? "ถูกต้อง" : "ไม่ถูกต้อง") : "ยังไม่มีผล";
+      const medicationRightFailures = rights
+        .filter(([label, percent]) =>
+          ["Right drug", "Right dose", "Right route (SC)", "Right time"].includes(label) &&
+          percent === 0,
+        )
+        .map(([label]) => label);
+      const details: Array<[string, string]> = [
+        ["Medication Errors", errorRows.length || medicationRightFailures.length ? `${errorRows.length + medicationRightFailures.length} รายการ` : "ยังไม่มีข้อมูลบันทึกข้อผิดพลาด"],
+        ...(medicationRightFailures.length
+          ? [["รายการที่ต้องทบทวน", medicationRightFailures.join(" · ")] as [string, string]]
+          : []),
+        ["เลือกขวดยา", medicationPreparationResult(preparation.medicineBottle === 0, preparation.medicineSelected)],
+        ["เลือกไซริง", medicationPreparationResult(preparation.syringeSelected === 0, preparation.syringeSelected != null)],
+        ["คำนวณโดส 4 ยูนิต", medicationPreparationResult(Number(preparation.calculatedDose) === 4, preparation.doseCalculated)],
+        ["ซักประวัติผู้ป่วย", rounds.initialInterviewCompleted ? countCorrectAnswers(initialAnswers) : "ยังไม่มีผล"],
+        ["สื่อสารก่อนให้ยา", rounds.beforeMedicationCompleted ? `${correctBeforeTopics} / ${requiredBeforeTopics.length} ข้อ` : "ยังไม่มีผล"],
+        ["ตรวจสภาพผิว", skinAssessment.completed ? (injectionSite?.id === "right-thigh" ? "เลือกตำแหน่งถูกต้อง" : "เลือกตำแหน่งไม่ถูกต้อง") : "ยังไม่มีผลตรวจ"],
+        ["ติดตามหลังให้ยา", rounds.postMedicationCompleted ? countCorrectAnswers(postAnswers) : "ยังไม่มีผล"],
+      ];
+      details.forEach(([label, value], index) => {
+        const y = centerY - folderHeight * 0.17 + index * folderHeight * 0.075;
+        this.add
+          .text(left, y, label, {
+            fontFamily: this.uiFontFamily,
+            fontSize,
+            fontStyle: index === 0 ? "bold" : "normal",
+            color: "#28231e",
+          })
+          .setDepth(3);
+        this.add
+          .text(valueX, y, value, {
+            fontFamily: this.uiFontFamily,
+            fontSize,
+            color: "#28231e",
+            wordWrap: { width: folderWidth * 0.48 },
+            lineSpacing: 3,
+          })
+          .setDepth(3);
+      });
+    }
+
+    const buttonHeight = Math.max(50, Math.min(68, this.scale.height * 0.062));
+    const buttonWidth = Math.min(290, Math.max(170, this.scale.width * 0.33));
+    const rightX = this.scale.width - buttonWidth / 2 - Math.max(14, this.scale.width * 0.025);
+    const replayY = this.scale.height - buttonHeight / 2 - Math.max(24, this.scale.height * 0.045);
+    const homeY = replayY - buttonHeight - Math.max(10, this.scale.height * 0.015);
+    this.drawMARButton(
+      rightX,
+      homeY,
+      buttonWidth,
+      "กลับหน้าโฮม",
+      () => {
+        sessionStorage.removeItem("medclue-game-scene");
+        window.location.assign("/");
+      },
+    );
+    this.drawMARButton(
+      rightX,
+      replayY,
+      buttonWidth,
+      "เล่นอีกครั้ง",
+      () => {
+        sessionStorage.setItem("medclue-game-scene", "GameRoom");
+        window.location.assign("/game");
+      },
+      false,
+    );
+  }
+
+  private drawMARButton(
+    x: number,
+    y: number,
+    buttonWidth: number,
+    label: string,
+    action: () => void,
+    primary = true,
+  ) {
+    const buttonHeight = Math.max(50, Math.min(68, this.scale.height * 0.062));
+    const shadow = this.add
+      .rectangle(x, y + 3, buttonWidth, buttonHeight, primary ? 0x3f2523 : 0x554f47)
+      .setDepth(7);
+    const face = this.add
+      .rectangle(x, y, buttonWidth, buttonHeight, primary ? 0x754444 : 0xfffcf5)
+      .setStrokeStyle(1.5, primary ? 0x3f2523 : 0x49392c)
+      .setDepth(8)
+      .setInteractive({ useHandCursor: true });
+    const text = this.add
+      .text(x, y, label, {
+        fontFamily: this.uiFontFamily,
+        fontSize: `${Math.max(10, Math.min(16, this.scale.width * 0.008))}px`,
+        fontStyle: "bold",
+        color: primary ? "#ffffff" : "#28231e",
+      })
+      .setOrigin(0.5)
+      .setDepth(9);
+    face.on("pointerover", () => {
+      face.setFillStyle(primary ? 0x875252 : 0xeee5d6);
+      this.tweens.add({ targets: [face, text], y: y - 2, duration: 120 });
+      this.tweens.add({ targets: shadow, y: y + 1, duration: 120 });
+    });
+    face.on("pointerout", () => {
+      face.setFillStyle(primary ? 0x754444 : 0xfffcf5);
+      this.tweens.add({ targets: [face, text], y, duration: 120 });
+      this.tweens.add({ targets: shadow, y: y + 3, duration: 120 });
+    });
+    face.on("pointerdown", action);
+    text.setInteractive({ useHandCursor: true }).on("pointerdown", action);
   }
 
   private drawVitalReadings(
