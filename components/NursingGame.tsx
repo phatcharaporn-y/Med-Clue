@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import styles from "./NursingGame.module.css";
 
 export default function NursingGame() {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -13,6 +14,18 @@ export default function NursingGame() {
       await document.fonts.ready;
       const PhaserModule = await import("phaser");
       const { CaseBriefScene } = await import("./CaseBriefScene");
+      const { GameRoomScene } = await import("./GameRoomScene");
+      const { PatientInteractionScene } = await import("./PatientInteractionScene");
+      const { SkinAssessmentScene } = await import("./SkinAssessmentScene");
+      const { MedicationPatientFlowScene } = await import("./MedicationPatientFlowScene");
+      const { ObjectInspectScene } = await import("./ObjectInspectScene");
+      const { MedicationTrayScene } = await import("./MedicationTrayScene");
+      const {
+        MedicationCabinetScene,
+        MedicationSyringesScene,
+        MedicationDoseScene,
+        MedicationAspirationScene,
+      } = await import("./MedicationStepScenes");
       if (disposed || !stageRef.current) return;
 
       game = new PhaserModule.default.Game({
@@ -30,7 +43,8 @@ export default function NursingGame() {
           pixelArt: false,
           roundPixels: true,
         },
-        scene: [CaseBriefScene],
+        scene: [CaseBriefScene, GameRoomScene, PatientInteractionScene, SkinAssessmentScene, MedicationPatientFlowScene, ObjectInspectScene, MedicationTrayScene,
+          MedicationCabinetScene, MedicationSyringesScene, MedicationDoseScene, MedicationAspirationScene],
       });
     };
 
@@ -43,8 +57,8 @@ export default function NursingGame() {
   }, []);
 
   return (
-    <main className="phaser-game-shell">
-      <div ref={stageRef} className="phaser-stage" aria-label="ฉากจำลองการพยาบาล" />
+    <main className={styles.shell}>
+      <div ref={stageRef} className={styles.stage} aria-label="ฉากจำลองการพยาบาล" />
     </main>
   );
 }
