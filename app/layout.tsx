@@ -1,6 +1,7 @@
 import "./site.css";
 import type { ReactNode } from "react";
 import { Prompt } from "next/font/google";
+import { AuthProvider } from "../components/AuthProvider";
 
 const prompt = Prompt({
   subsets: ["thai", "latin"],
@@ -17,7 +18,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="th" className={prompt.variable}>
-      <body>{children}</body>
+      <body><AuthProvider>{children}</AuthProvider></body>
     </html>
   );
 }
