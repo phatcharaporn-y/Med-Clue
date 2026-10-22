@@ -474,6 +474,20 @@ body {
 .mini-profile small {
   display: block;
 }
+.logout-link {
+  display: flex;
+  gap: 12px;
+  padding: 14px 8px 0;
+  border: 0;
+  border-top: 1px solid #edf0f4;
+  background: transparent;
+  color: #697486;
+  font: inherit;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.logout-link:hover { color: #1478ae; }
 .mini-profile strong {
   font-size: 13px;
 }
@@ -481,15 +495,6 @@ body {
   margin-top: 4px;
   color: #8993a2;
   font-size: 11px;
-}
-.logout-link {
-  display: flex;
-  gap: 12px;
-  padding: 14px 8px 0;
-  border-top: 1px solid #edf0f4;
-  color: #697486;
-  font-size: 13px;
-  text-decoration: none;
 }
 .dashboard-main {
   min-width: 0;
